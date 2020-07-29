@@ -1,13 +1,14 @@
 const redis = require("redis");
-const client = redis.createClient();
 const {promisify} = require("util");
+const client = redis.createClient();
 
-//bitmaps
+//sets (1) or clears (0) the bit at offset, returns old value
 const setbitAsync = promisify(client.setbit).bind(client);
+
+//calculates number of bits set to 1
 const bitcountAsync = promisify(client.bitcount).bind(client);
 
 let chain = Promise.resolve();
-
 for (let i = 0; i < 10000; i = i + 3) {
     chain = chain.then(() => {
         return Promise.all([
@@ -18,11 +19,12 @@ for (let i = 0; i < 10000; i = i + 3) {
     })
 }
 
-chain.then(() => {
-    bitcountAsync("bitmaps").then(function (res) {
+chain
+    .then(() => bitcountAsync("bitmaps"))
+    .then(res => {
         console.log("bitcount", res);
-    }).catch(function (err) {
+    })
+    .catch(err => {
         console.error("bitcount", err);
     });
-});
 
