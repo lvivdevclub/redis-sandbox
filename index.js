@@ -10,6 +10,8 @@ client.on("error", function (error) {
     console.error(error);
 });
 
+
+//
 client.hmset("MY-key", ["foo", "bar", "qw", "asd"], function (err, res) {
     if (err) {
         console.error("hmset", err);
