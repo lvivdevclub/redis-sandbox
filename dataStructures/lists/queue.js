@@ -14,6 +14,13 @@ if (cluster.isMaster) {
         .catch(err => {
             console.error("del", err);
         });
+    delAsync('list2:queue:processing')
+        .then(res => {
+            console.log("del", res);
+        })
+        .catch(err => {
+            console.error("del", err);
+        });
 
     setTimeout(() => {
         lpushAsync("list1:queue", "lpush")
@@ -26,7 +33,7 @@ if (cluster.isMaster) {
     }, 5000);
 
     setTimeout(() => {
-        lpushAsync("list2:queue", "lpush")
+        lpushAsync("list1:queue", "lpush")
             .then(res => {
                 console.log("lpush", res);
             })
@@ -36,7 +43,7 @@ if (cluster.isMaster) {
     }, 6000);
 
     setTimeout(() => {
-        lpushAsync("list2:queue", "lpush")
+        lpushAsync("list1:queue", "lpush")
             .then(res => {
                 console.log("lpush", res);
             })
@@ -48,22 +55,23 @@ if (cluster.isMaster) {
     cluster.fork();
     setTimeout(() => cluster.fork(), 1000);
 } else {
-    const blpopAsync = promisify(client.blpop).bind(client);
+    const brpoplpushAsync = promisify(client.brpoplpush).bind(client);
+    const lremAsync = promisify(client.lrem).bind(client);
 
-    //by default BLPOP blocks the connection until
-    //another client performs an LPUSH or RPUSH operation against one of the keys
-    //set 0 to block indefinitely
-    blpopAsync('list1:queue', 'list2:queue', 0)
-        .then(res => {
-            console.log(`blpop ${process.pid}`, res);
-            return blpopAsync('list1:queue', 'list2:queue', 0);
-        })
-        .then(res => {
-            console.log(`blpop ${process.pid}`, res);
-        })
-        .catch(err => {
-            console.error(`blpop ${process.pid}`, err);
-        });
+    brpop();
+
+    async function brpop() {
+        //by default blocks the connection until
+        //another client performs an LPUSH or RPUSH operation against one of the keys
+        //set 0 to block indefinitely
+        const message = await brpoplpushAsync("list1:queue", "list2:queue:processing", 0);
+        console.log(`brpoplpush ${process.pid}`, message);
+        //if BLPOP is used instead, it would return an element to the client and removes the element from the list
+        //BRPOPLPUSH allows us to store message in the "processing" list to make process more reliable
+        const lremRes = await lremAsync("list2:queue:processing", 0, message);
+        console.log(`lremRes ${process.pid}`, lremRes);
+        await brpop();
+    }
 }
 
 
