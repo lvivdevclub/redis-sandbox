@@ -3,9 +3,16 @@ const {promisify} = require("util");
 const client = redis.createClient();
 
 const incrbyAsync = promisify(client.incrby).bind(client);
+const setAsync = promisify(client.set).bind(client);
 const getAsync = promisify(client.get).bind(client);
 
-client.set("counter", "100", redis.print);
+setAsync("counter", "100")
+    .then(res => {
+        console.log("set", res);
+    })
+    .catch(err => {
+        console.error("set", err);
+    });
 
 for (let i = 0; i < 1000000; i++) {
     incrbyAsync("counter", 100000000000 * i)
