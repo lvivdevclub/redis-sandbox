@@ -48,13 +48,13 @@ for (let i = 0; i < 2; i++) {
     const client = redis.createClient();
     const xreadAsync = promisify(client.xread).bind(client);
 
-    xread(i);
+    xread(i, "$");
 
-    async function xread(index) {
+    async function xread(index, id) {
         //set 0 as timeout to block indefinitely
         //set $ as id to consume only new entries
-        const message = await xreadAsync("BLOCK", 0, "STREAMS", "stream", "$");
+        const message = await xreadAsync("BLOCK", 0, "STREAMS", "stream", id);
         console.log(`xread ${index}`, inspect(message, {depth: 4}));
-        await xread(index);
+        await xread(index, message[0][1][0][0]);
     }
 }

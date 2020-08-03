@@ -7,6 +7,12 @@ const zrangeAsync = promisify(client.zrange).bind(client);
 const zrevrangeAsync = promisify(client.zrevrange).bind(client);
 const zrankAsync = promisify(client.zrank).bind(client);
 
+zaddAsync("sset", 1, "d")
+    .then(res => {
+    })
+    .catch(err => {
+    });
+
 const data = ["a", "b", "c"];
 for (let i = 0; i < data.length; i++) {
     zaddAsync("sset", i, data[i])
@@ -15,6 +21,12 @@ for (let i = 0; i < data.length; i++) {
         .catch(err => {
         });
 }
+
+zaddAsync("sset", 2, "a")
+    .then(res => {
+    })
+    .catch(err => {
+    });
 
 // 0 - first, -1 - last
 zrangeAsync("sset", 0, -1)
