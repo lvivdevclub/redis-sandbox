@@ -8,6 +8,9 @@ docker exec -it X /bin/sh
 to connect to cli
 redis-cli -p 7000
 
+to start/stop nodes
+supervisorctl start/stop X
+
 to return nodes
 redis-cli -p 7000 cluster nodes
 
